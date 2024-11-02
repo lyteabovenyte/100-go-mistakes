@@ -76,4 +76,11 @@ create common abstractions that multiple objects can implement.
         itself can be replaced with another without even having to change our code.
     - 3. restricting behavior
 - <b>```the main caveat of interfaces, as a way to create abstraction; is that abstraction should be discovered, not created.```</b> so we shouldn't desing with interfaces and wait for a concrete need. Said differently, we should create an interface when we need it, not when we foresee that we could need it. so before introducint an interface type we should ask this question: `Why not call the implementation directly?`
+- it's always a best practice to declare the interface on the client or consumer side and place the actual implementation on the producer side. so every client could declare it's own interface and import just the behavior or functionality that it needs, not the full funcitonality. it is also good in the sense that there could be any dependency between the package that implements the actual functionality and the package that is declaring interface, cause in Go interfaces are implemented implicitly
+- in the concept of returning a struct (actual implementation) or interface there is a rule of thumb:
+    - 1. returning a struct
+    - 2. accepting interface if possible
+- by using `any` we lose some of the core aspect and benefits of golang as a statically typed language.
+- **generics**: In a nutshell, this allows writing code with types
+that can be specified later and instantiated when needed.
 - 
