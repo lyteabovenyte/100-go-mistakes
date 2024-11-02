@@ -77,4 +77,3 @@ create common abstractions that multiple objects can implement.
     - 3. restricting behavior
 - <b>```the main caveat of interfaces, as a way to create abstraction; is that abstraction should be discovered, not created.```</b> so we shouldn't desing with interfaces and wait for a concrete need. Said differently, we should create an interface when we need it, not when we foresee that we could need it. so before introducint an interface type we should ask this question: `Why not call the implementation directly?`
 - 
-- 
