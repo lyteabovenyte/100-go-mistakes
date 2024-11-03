@@ -96,3 +96,10 @@ with this exact type, we define a struct called options then a type that is a fu
 each field in the options needs a closure to deal with configuration. a **closure** in go is an anonymous function that references a field outside of its body.
 so the client just have to provide the desired closure in using the API.
 - using linters and formatter, documentating exported functions and methods and also packages and constant can make our code easier for reader and maintainer.
+
+##### chapter 3.
+- keep in mind that floating point values are approximate, so by this reason when we are comparing two floating point, in may return a result that may not be true. so `testify` package contains a `InDelta` function to assert that two values are in ceratin amount of distance by each other.
+- in Go, a slice is backed by an array. that means that the slice's data is continuously added to the underlying array. `so internally a slice, holds a pointer to the backing array and a capacity and length variable`. The length is the number of elements the slice contains, whereas the capacity is the number of elements in the backing array.
+-  after the backing array is full, go cope with this by doubling the capacity of the backing array. generally, In Go, a slice grows by doubling its size until it contains 1,024 elements, after which it grows by 25%.
+-  when slicing a slice, hence, they are both backed by a single array, so changes to one, can impact the other, but appending have a different effect, which by appending to one of the slices, the appended element is only visible to the slice that it was appended to.
+-    
