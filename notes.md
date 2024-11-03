@@ -75,12 +75,18 @@ create common abstractions that multiple objects can implement.
         we rely on an abstraction instead of a concrete implementation, the implementation
         itself can be replaced with another without even having to change our code.
     - 3. restricting behavior
-- <b>```the main caveat of interfaces, as a way to create abstraction; is that abstraction should be discovered, not created.```</b> so we shouldn't desing with interfaces and wait for a concrete need. Said differently, we should create an interface when we need it, not when we foresee that we could need it. so before introducint an interface type we should ask this question: `Why not call the implementation directly?`
-- it's always a best practice to declare the interface on the client or consumer side and place the actual implementation on the producer side. so every client could declare it's own interface and import just the behavior or functionality that it needs, not the full funcitonality. it is also good in the sense that there could be any dependency between the package that implements the actual functionality and the package that is declaring interface, cause in Go interfaces are implemented implicitly
+- <b>```the main caveat of interfaces, as a way to create abstraction; is that abstraction should be discovered, not created.```</b> so we shouldn't desing with interfaces and wait for a concrete need. Said differently, we should create an interface when we need it, not when we foresee that we could need it. so before introducing an interface type we should ask this question: `Why not call the implementation directly?` or is there any other object or usecase for this abstraction?
+- it's always a best practice to declare the interface on the client or consumer side and place the actual implementation on the producer side. so every client could declare it's own interface and import just the behavior or functionality that it needs, not the full funcitonality. it is also good in the sense that there could be no dependency between the package that implements the actual functionality and the package that is declaring interface, cause in Go interfaces are implemented implicitly
 - in the concept of returning a struct (actual implementation) or interface there is a rule of thumb:
     - 1. returning a struct
     - 2. accepting interface if possible
 - by using `any` we lose some of the core aspect and benefits of golang as a statically typed language.
 - **generics**: In a nutshell, this allows writing code with types
 that can be specified later and instantiated when needed.
+- using generics and the function parameter using Type Parameter is some how defining a **constraint interface** for a type and **instantiate** it to the parameter.
+- What’s the difference between a constraint using `~int` or one using `int`? Using `int`
+restricts it to that type, whereas `~int` restricts all the types whose underlying type is
+an `int`
+- [`comparable` interface](https://pkg.go.dev/builtin#comparable) as a type constraint interface: comparable is an interface that is implemented by all comparable types (booleans, numbers, strings, pointers, channels, arrays of comparable types, structs whose fields are all comparable types). The comparable interface may only be used as a **type parameter constraint**, not as the type of a variable.
+- so the last word about generics and how to use them and don't using them, is that generics provide a kind of abstraction for the data types and functional behvaior as it can restrict and constraint the data types and the functional behvaior of an object, so `just solve what needs to be solved, and whenever you feel the need to write boilerplate code for a general type and writing biolerplate and general function for an object type, consider if using generics make your code clearer or not.`
 - 
