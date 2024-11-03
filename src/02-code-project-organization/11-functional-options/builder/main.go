@@ -15,6 +15,8 @@ type ConfigBuilder struct {
 	port *int
 }
 
+// such a configuration method returns the builder itself so that
+// we can use method chaining
 func (b *ConfigBuilder) Port(port int) *ConfigBuilder {
 	b.port = &port
 	return b
@@ -23,6 +25,9 @@ func (b *ConfigBuilder) Port(port int) *ConfigBuilder {
 func (b *ConfigBuilder) Build() (Config, error) {
 	cfg := Config{}
 
+	// the logic for port management goes
+	// inside the builder so we can configure
+	// our Config struct here to return.
 	if b.port == nil {
 		cfg.Port = defaultHTTPPort
 	} else {
