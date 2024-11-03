@@ -38,6 +38,8 @@ func getKeysWithConstraint[K customConstraint, V any](m map[K]V) []K {
 	return nil
 }
 
+// defining linked list structure
+// linked list has a value and a reference to the next node.
 type Node[T any] struct {
 	Val  T
 	next *Node[T]
