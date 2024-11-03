@@ -13,7 +13,12 @@ type options struct {
 
 type Option func(options *options) error
 
+// closure --> an anonymous funciton that references a variable
+// outside of its body.
 func WithPort(port int) Option {
+	// it returns pointer to the actual options type
+	// which can be used to reference a variable
+	// outside of its body to the options field
 	return func(options *options) error {
 		if port < 0 {
 			return errors.New("port should be positive")
@@ -26,7 +31,7 @@ func WithPort(port int) Option {
 func NewServer(addr string, opts ...Option) (*http.Server, error) {
 	var options options
 	for _, opt := range opts {
-		err := opt(&options)
+		err := opt(&options) // it sets up the options struct.
 		if err != nil {
 			return nil, err
 		}
