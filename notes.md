@@ -102,4 +102,25 @@ so the client just have to provide the desired closure in using the API.
 - in Go, a slice is backed by an array. that means that the slice's data is continuously added to the underlying array. `so internally a slice, holds a pointer to the backing array and a capacity and length variable`. The length is the number of elements the slice contains, whereas the capacity is the number of elements in the backing array.
 -  after the backing array is full, go cope with this by doubling the capacity of the backing array. generally, In Go, a slice grows by doubling its size until it contains 1,024 elements, after which it grows by 25%.
 -  when slicing a slice, hence, they are both backed by a single array, so changes to one, can impact the other, but appending have a different effect, which by appending to one of the slices, the appended element is only visible to the slice that it was appended to.
--    
+-  in the case of nil and empty slices, it's always a good practice to check whether the function that is working with the slice (either its from standard library or an external library) distinguish the difference between nil and empty slices. such as `encoding/json` which `Marshal()` return `null` for nil slice marshaling and returns `[]` for empty slice marshaling.
+-  when designing Interfaces, it's a good practice to not to distinguish the difference between `nil` and empty slices. it means that we always should return `nil` for the both empty and nil slices, for the case where the caller's condition is `x != nil` or `len(x) != 0` which in both cases the `nil` value returns false and prevent subtle programming errors. and as a caller, it's always good to keep in mind to check the length of the slice, not whether it's nil or not.
+- To use `copy` effectively, it’s essential to understand that the number of elements
+copied to the destination slice corresponds to the minimum between. so, If we want to perform a complete copy, the destination slice must have a length greater than or equal to the source slice’s length.
+- To copy one slice to another using the copy built-in function, remember that the number of copied elements corresponds to the minimum between the two slice’s lengths.
+-  when slicing a slice(!), and the perform `append` on the latter one, we should be careful that if the capacity of the latter slice is greater than the element we are appending, the backing array of both may change, so the append operation may change the former(first) slice. in this kind of scenarios, we can use **full slice expression** which sets a limit on the sliced slice(!). this way, we are limiting on appending and if the limit we have set, don't contian capacity, appending doesn't affect the original slice and backing array.
+-  Using `copy` or the *full slice expression* is a way to prevent `append` from creating
+conflicts if two different functions use slices backed by the same array.
+-  when working with slice is important to notice this rule, **a slice is a <u>pointer</u> to the backing array** so for more boldness --> `a slice is a pointer to the underlying backing array so when working with slices: if the element is a pointer or a struct with pointer fields, the elements won’t be reclaimed by the GC.`
+- while benchmarking, consider using `runtime.MemStats` and it's method `Alloc`,  and `runtime.ReadMemStats()`. also `runtime.GC()` for manually calling garbage collector and `runtime.KeepAlive` to keep a reference of a variable to prevent garbage collector to collect it.
+- in memory-leak point of view on slice and slicing subject there was two problems:
+    - 1. The first was about slicing an existing slice or array to preserve the capacity. If we handle large slices and reslice them to keep only a fraction, a lot of memory will remain allocated but unused.
+    - 2. The second problem is that when we use the slicing operation with *pointers* or structs
+    with pointer fields, we need to know that the GC won't reclaim these elements.
+###### maps:
+- A `map` provides an <u>unordered</u> collection of key-value pairs in which all the keys are distinct. In Go, a map is based on the hash table data structure. Internally, a hash table is
+an array of buckets, and each bucket is a pointer to an array of key-value pairs.
+- just like with slices, initializing a size for the map, up front, remove the potential of reallocation of memory and rebalancing all the current buckets.
+- it worth remembering that maps can only decrease the bucket but never shrinks. so we should be careful to not to allocate much more memory for map and bucket if we are gonna delete it and never use the bucket --> the solution may be to copy the actual map to another map with lower bucket size or use pointer as the values (which allocates 8 bit on 64-bit machine).
+###### comparison:
+- note that `==` and `!=` operators dont work with slice and maps. they only works on operand that are comparable (comparable is an interface on `Boolean`, `Numberics`, `Strings`, `Channels`, `Interface`, `Pointers`, `Structs`, `Array`)
+- We can also use the ?, >=, <, and > operators with numeric types to compare values and with strings to compare their lexical order.
