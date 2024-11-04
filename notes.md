@@ -124,3 +124,51 @@ an array of buckets, and each bucket is a pointer to an array of key-value pairs
 ###### comparison:
 - note that `==` and `!=` operators dont work with slice and maps. they only works on operand that are comparable (comparable is an interface on `Boolean`, `Numberics`, `Strings`, `Channels`, `Interface`, `Pointers`, `Structs`, `Array`)
 - We can also use the ?, >=, <, and > operators with numeric types to compare values and with strings to compare their lexical order.
+#### chapter 4: Control structure
+- In general, `range` produces two values for each data structure except a receiving channel
+- `Important Notice`: `In Go, everything we assign is a copy`:
+    - 1. If we assign the result of a function returning a struct, it performs a copy of that
+    struct.
+    - 2. If we assign the result of a function returning a pointer, it performs a copy of the
+    memory address (an address is 64 bits long on a 64-bit architecture). 
+- It’s crucial to keep this in mind to avoid common mistakes, including those related to
+range loops. Indeed, when a range loop iterates over a data structure, it performs a
+copy of each element to the value variable (the second item).
+- **expression evaluated only once in `range`:
+```go
+s := []int{1, 2, 3}
+for range s {
+    s = append(s, 10)
+}
+// keep in mind that range will copy the expression in a temp variable and uses that
+// to evaluate the expression, so the size of the slice remain 3 for the temp variable
+// used by range. it's not the case with traditional for loop.
+```
+- When iterating over a data structure using a range loop, we must recall that all the
+values are assigned to a unique variable with a single unique address.
+```go
+for i, v := range []Customers{
+    // all the elements of Customers slice
+    // are assigned to the same v variable 
+    // created by the range loop.
+    // so keep in mind that this variable is 
+    // single and points to a single memory address.
+}
+```
+- maps are unordered, if you want to keep the order, consider using **binary heap**
+- If a map entry is created during iteration, it may be produced during the iteration or
+skipped. The choice may vary for each entry created and from one iteration to the next.
+- when using `break` in for loop in conjuction with `switch` or `select`, the break statement doesn't terminate the for loop, it terminates the switch statement. so again, One essential rule to keep in mind is that a `break statement terminates the execution of the innermost for, switch, or select statement.` so how to break the loop? **use labels** as so:
+```go
+loop:
+    for i := 0; i < 5; i++ {
+        fmt.Println(i)
+        switch i {
+            default: // do what you want
+            case 2: break loop // breaking the loop attached to the label.
+        }
+    }
+```
+- The `defer` statement delays a call’s execution until the surrounding function returns.
+- `defer` schedules a function call when the surrounding function returns.
+-  
