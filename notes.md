@@ -171,4 +171,16 @@ loop:
 ```
 - The `defer` statement delays a call’s execution until the surrounding function returns.
 - `defer` schedules a function call when the surrounding function returns.
--  
+
+#### chapter 5: Strings.
+- encoding vs charset:
+    - **charset**: A charset, as the name suggests, is a set of characters. For example, the Unicode
+    charset contains 2^21 characters. 
+    - **encoding**: An encoding is the translation of a character’s list in binary. For example, UTF-
+    8 is an encoding standard capable of encoding all the Unicode characters in a
+    variable number of bytes (from 1 to 4 bytes).
+- We mentioned characters to simplify the charset definition. But in Unicode, we use
+the concept of a `code point` to refer to an item represented by a single value. For example, the 汉 character is identified by the U+6C49 code point. Using UTF-8, 汉 is
+encoded using three bytes: 0xE6, 0xB1, and 0x89. Why is this important? Because in
+Go, a **rune** is a Unicode code point. Meanwhile, we mentioned that UTF-8 encodes characters into 1 to 4 bytes, hence, up to 32 bits. This is why in Go, a rune is an alias of int32.
+- 
