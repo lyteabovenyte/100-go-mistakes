@@ -182,5 +182,58 @@ loop:
 - We mentioned characters to simplify the charset definition. But in Unicode, we use
 the concept of a `code point` to refer to an item represented by a single value. For example, the 汉 character is identified by the U+6C49 code point. Using UTF-8, 汉 is
 encoded using three bytes: 0xE6, 0xB1, and 0x89. Why is this important? Because in
-Go, a **rune** is a Unicode code point. Meanwhile, we mentioned that UTF-8 encodes characters into 1 to 4 bytes, hence, up to 32 bits. This is why in Go, a rune is an alias of int32.
+Go, a **rune** is a **Unicode code point**. Meanwhile, we mentioned that UTF-8 encodes characters into 1 to 4 bytes, hence, up to 32 bits. This is why in Go, a rune is an alias of int32.
+- as the built-in `len()` function returns the number of bytes, we should be caution about charset characters
+- A charset is a set of characters, whereas an encoding describes how to translate
+a charset into binary.
+- In Go, a string references an immutable slice of arbitrary bytes.
+- A rune corresponds to the concept of a Unicode code point, meaning an item
+represented by a single value.
+- When iterating over a string, we don’t iterate over each rune; instead, we iterate over each starting index of a rune
+- Using a range loop on a string returns two variables, the starting index of a rune and the rune itself
+- In summary, if we want to iterate over a string’s runes, we can use the range loop on
+the string directly. But we have to recall that the index corresponds not to the rune
+index but rather to the starting index of the byte sequence of the rune
+- `TrimRight` removes all the trailing runes contained in a given set.
+- `Trim` applies both TrimLeft and TrimRight on a string.
+- consider this code:
+```go
+func concat(values []string) string {
+    s := ""
+    for _, v := range values {
+        s += v
+    }
+    return s
+}
+// because strings immutability
+// this code lack perfomance due
+// to reallocating s, in every iteration
+```
+- the solution to the code above: `strings.Builder{}` struct. def in golang package: A **Builder** is used to efficiently build a string using `Builder.Write` methods. It minimizes memory copying. The zero value is ready to use. Do not copy a non-zero Builder.
+```go
+func concat(values []string) string {
+    sb := strings.Builder{}
+    for _, v := range values {
+        _, _ := sb.WriteString(v) // appends a string to the builder struct
+    }
+    sb.String()
+}
+```
+we created a strings.Builder struct using its zero value. During each iteration,
+we constructed the resulting string by calling the WriteString method that appends
+the content of value to its **internal buffer**, hence minimizing memory copying.
+- using `bytes` package instead of `strings`, prevent us of unnecessary conversions. so bother using bytes if possible.
+- When doing a substring operation, the Go specification doesn’t specify whether
+the resulting string and the one involved in the substring operation should share the
+same data. However, the standard Go compiler does let them share the same backing
+array, which is probably the best solution memory-wise and performance-wise as it prevents a new allocation and a copy.
+- Because a string is mostly a <u>pointer</u>, calling a function to pass a string
+doesn’t result in a deep copy of the bytes. The copied string will still reference
+the same backing array.
+- so, We need to keep two things in mind while using the substring operation in Go.
+*First*, the interval provided is based on the number of bytes, not the number of runes.
+*Second*, a substring operation may lead to a memory leak as the resulting substring
+will share the same backing array as the initial string. The solutions to prevent this
+case from happening are to perform a string copy manually or to use `strings.Clone`
+from Go 1.18.
 - 
