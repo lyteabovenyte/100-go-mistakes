@@ -236,4 +236,49 @@ the same backing array.
 will share the same backing array as the initial string. The solutions to prevent this
 case from happening are to perform a string copy manually or to use `strings.Clone`
 from Go 1.18.
-- 
+#### chapter 6. functions and methods
+- In Go, input and output operations are achieved using primitives that model data as streams of bytes that can be `read` from or `written` to
+- In most cases, using named result parameters in the context of an interface definition can increase readability without leading to any side effects.
+- a nil pointer is a valid receiver
+- In Go, a method is just syntactic sugar for a function whose first parameter is the receiver.
+- in Go, having a nil receiver is allowed, and an interface converted from a nil pointer isn’t a nil  interface. For that reason, when we have to return an interface, we should return not a nil pointer but a nil value directly. Generally, having a nil pointer isn’t a desirable state and means a probable bug.
+- We need to understand something crucial about argument evaluation in a `defer`
+function: the arguments are evaluated **right away**, not once the surrounding function
+returns.
+- in the case of calling a closure as a defer statement. As a reminder, a
+*closure* is an anonymous function value that references variables from outside its
+body. The arguments passed to a defer function are evaluated *right away*. But we must
+know that the variables referenced by a defer closure are evaluated during the closure
+execution (hence, when the surrounding function returns).
+```go
+func main() {
+    i, j := 0, 0
+    defer func() {
+        fmt.Println(i, j)
+    }(i)
+    i++
+    j++
+}
+// as this closure accept i as a function argumen
+// i is evaluated right away
+// but it references j from outside of it's body
+// so j gets evaluated during the execution of the closure.
+// prints --> 0, 1
+```
+- In summary, when we call defer on a function or method, the call’s arguments are
+evaluated immediately. If we want to mutate the arguments provided to defer afterward, we can use *pointers* or *closures*. For a method, the receiver is also evaluated
+immediately; hence, the behavior depends on whether the receiver is a *value* or a
+*pointer*
+- The decision whether to use a value or a pointer receiver should be made based
+on factors such as the type, whether it has to be mutated, whether it contains a
+field that can’t be copied, and how large the object is. When in doubt, use a
+pointer receiver.
+- `When returning an interface, be cautious about returning not a nil pointer but
+an explicit nil value`, as the nil pointer is not nil, it is a memory address that points to a nil value, so the caller never get's a nil value by calling it.
+- returning nil pointer is not explicit `nil`.
+- Designing functions to receive `io.Reader` types instead of filenames improves
+the reusability of a function and makes testing easier.
+- Passing a pointer to a defer function and wrapping a call inside a closure are
+two possible solutions to overcome the immediate evaluation of arguments and
+receivers.
+
