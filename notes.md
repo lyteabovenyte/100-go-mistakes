@@ -288,4 +288,71 @@ receivers.
 -  Note that calling `recover()` to capture a goroutine panicking is only useful inside a
 `defer` function; otherwise, the function would return nil and have no other effect. This
 is because defer functions are also executed when the surrounding function panics.
+- so in case of panicing, when there is a need to signal a programmer error or a mandatory dependency injection, on in case of a function call in `init` function of a package, there is a good reason to panic and signal that an error occured and exit the application. but in other cases, it is better to manage the error in a function returning a proper error type.
+- Since Go 1.13, the `%w` directive allows us to wrap errors conveniently. Error wrapping is about wrapping or packing an error inside a wrapper container that also makes the source error available. In general, the two main use cases for error wrapping are the following:
+      - 1. Adding additional context to an error
+      - 2. Marking an error as a specific error
+- To make sure our clients don’t rely on something that we consider implementation
+details, the error returned should be transformed, not wrapped. In such a case, using
+`%v` instead of `%w` can be the way to go.
+- notes about %v which transforms and %w which wraps the error:
+    - 1. `%v` directive --> `fmt.Errorf("failed. error: %v", err)` returns `*errors.errorString`
+    - 2. `%w` directive --> `fmt.Errorf("failed. error %w, err)` returns `*fmt.wrapError`
+- If we need to mark an error, we should create a custom error type. However, if we just want
+to add extra context, we should use fmt.Errorf with the %w directive as it doesn’t
+require creating a new error type. Yet, error wrapping creates potential coupling as it
+makes the source error available for the caller. If we want to prevent it, we shouldn’t use
+error wrapping but error transformation, for example, using fmt.Errorf with the %v
+directive.
+- Go 1.13 came with a directive to wrap an error and a way to check whether the wrapped error is of a certain type with `errors.As`. This function requires the second argument (the target error) to be a pointer. Otherwise, the function will compile but panic at runtime.
+```go
+// transietError is custom error type for temp error
+type transietError struct {
+    err error
+}
+
+// Error() implement the error interface for transietError type
+func (t *transietError) Error() string {
+    // 
+}
+
+func f() error {
+    // some logic
+    if err != nil {
+        if errors.As(err, &transietError) {
+            // some logic in case of the error being of type transietError
+        } else {
+            // some logic for another type of error
+        }
+    }
+}
+```
+- A **sentinel error** is an error defined as a global variable. A sentinel error conveys an *expected* error. Conversely, situations like network issues and connection polling
+errors are unexpected errors. It doesn’t mean we don’t want to handle unexpected
+errors; it means that semantically, those errors convey a different meaning.
+- as general guidelines:
+    - 1. Expected errors should be designed as error values (sentinel errors): var
+    ErrFoo = errors.New("foo").
+    - 2. Unexpected errors should be designed as error types: `type BarError struct
+    { … }`, with BarError implementing the error interface.
+- We have seen how `errors.As` is used to check an error against a type. With error <u>values</u>, we can use its counterpart: `errors.Is`.
+```go
+// creating a sentinel error
+var NoRowFound = errors.New("didn't fount the specified row")
+
+err := Query()
+if err != nil {
+    if errors.Is(err, NoRowFound) {
+        // some logic
+    } else {
+        // some logic
+    }
+}
+```
+- Using `errors.Is` instead of the `==` operator allows the comparison to work even if the
+error is wrapped using `%w`.
+- In summary, if we use error wrapping in our application with the %w directive and
+fmt.Errorf, checking an error against a specific value should be done using
+errors.Is instead of ==. Thus, even if the sentinel error is wrapped, errors.Is can
+recursively unwrap it and compare each error in the chain against the provided value.
 - 
