@@ -281,4 +281,11 @@ the reusability of a function and makes testing easier.
 - Passing a pointer to a defer function and wrapping a call inside a closure are
 two possible solutions to overcome the immediate evaluation of arguments and
 receivers.
-
+#### chapter 7. Error management
+- In Go, `panic` is a built-in function that stops the ordinary flow
+-  errors are returned as normal return values.
+-  Once a `panic` is triggered, it continues up the call stack until either the current goroutine has returned or panic is caught with `recover`.
+-  Note that calling `recover()` to capture a goroutine panicking is only useful inside a
+`defer` function; otherwise, the function would return nil and have no other effect. This
+is because defer functions are also executed when the surrounding function panics.
+- 
