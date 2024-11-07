@@ -355,4 +355,69 @@ error is wrapped using `%w`.
 fmt.Errorf, checking an error against a specific value should be done using
 errors.Is instead of ==. Thus, even if the sentinel error is wrapped, errors.Is can
 recursively unwrap it and compare each error in the chain against the provided value.
+#### chapter 8, concurrency foundamental
+- Unlike *parallelism*, which is about doing the same thing multiple times at once, *concurrency* is
+about structure.
+- **`concurrency enables parallelism.`**, concurrency provides a structure to solve a problem with parts that may be parallelized.
+- so concurrency is about the desing of the *threads* which are going to be coordinated and be aware of each other's state, and these threads then can be paralleled and provide high through-put.
+- In summary, concurrency and parallelism are different. Concurrency is about structure, and we can change a sequential implementation into a concurrent one by introducing different steps that separate concurrent threads can tackle. Meanwhile, parallelism is about *execution*, and we can use it at the step level by adding more parallel threads. Understanding these two concepts is fundamental to being a proficient Go developer.
+- A **thread** is the smallest unit of processing that an OS can perform. If a process wants
+to execute multiple actions simultaneously, it spins up multiple threads. these threads can be:
+  - 1. **Concurrent**: Two or more threads can start, run, and complete in overlapping
+    time periods, like the waiter thread and the coffee machine thread in the previous section.
+  - 2. **Parallel**: The same task can be executed multiple times at once, like multiple
+    waiter threads.
+- The OS is responsible for scheduling the thread’s processes optimally. A CPU core executes different threads. When it switches from one thread to another, it executes an operation called *context switching*. The active thread consuming CPU cycles was in an *executing* state and moves to a *runnable* state, meaning it’s ready to be executed pending an available core.
+- As Go developers, we can’t create threads directly, but we can create **goroutines**,
+which can be thought of as application-level threads.
+- as mentioned in the source code:
+    - Goroutine scheduler: The scheduler's job is to distribute *ready-to-run* goroutines over worker threads.
+    - the Go scheduler uses the following terminology:
+      - G - Goroutine
+      - M - Machine (OS thread)
+      - P - CPU Core (Processor)
+- Each OS thread (M) is assigned to a CPU core (P) by the OS scheduler. Then, each
+goroutine (G) runs on an M. The `GOMAXPROCS` variable defines the limit of Ms in
+charge of executing user-level code simultaneously. But if a thread is blocked in a system call (for example, I/O), the scheduler can spin up more Ms. As of Go 1.5, `GOMAXPROCS` is by default equal to the number of available CPU cores.
+- **channels** are a communication mechanism. Internally, a channel is a pipe we can use to send and receive values and that allows us to *connect* concurrent goroutines. A channel can be either of the following:
+    - 1. *UnBuffered*: The sender goroutine blocks until the receiver goroutine is ready.
+    - 2. *Buffered*: The sender goroutine blocks only when the buffer is full.
+- In general, parallel goroutines have to *synchronize*: for example, when they need to
+access or mutate a shared resource such as a slice. Synchronization is enforced with
+**mutexes** but not with any channel types (not with buffered channels). Hence, in general, synchronization between parallel goroutines should be achieved via mutexes.
+- Conversely, in general, concurrent goroutines have to *coordinate and orchestrate*. For
+example, if G3 needs to aggregate results from both G1 and G2(which are parallel with each other and concurrent with G3), G1 and G2 need to signal to G3 that a new intermediate result is available. This coordination falls under the scope of communication—therefore, **channels**.
+- **Mutexes** and **channels** have different semantics. Whenever we want to share a state
+or access a shared resource, mutexes ensure exclusive access to this resource. Conversely, channels are a mechanic for signaling with or without data (chan struct{} or
+not). Coordination or ownership transfer should be achieved via channels. It’s important to know whether goroutines are parallel or concurrent because, in general, we need mutexes for parallel goroutines and channels for concurrent ones.
+- A **data race** occurs when two or more goroutines simultaneously access the same memory location and at least one is writing.
+- A *race condition* occurs when the behavior depends on the sequence or the timing of events that can’t be controlled. Ensuring a specific execution sequence among goroutines is a question of *coordination* and *orchestration*
+- If we want to ensure that we first go from state 0 to state 1,
+and then from state 1 to state 2, we should find a way to guarantee that the goroutines
+are executed in order. Channels can be a way to solve this problem. Coordinating and
+orchestrating can also ensure that a particular section is accessed by only one goroutine, which can also mean removing the mutex
+- The [Go memory model](https://golang.org/ref/mem) is a specification that
+defines the conditions under which a read from a variable in one goroutine can be
+guaranteed to happen after a write to the same variable in a different goroutine. In
+other words, it provides guarantees that developers should keep in mind to avoid data
+races and force deterministic output.
+- A send on a channel happens before the corresponding receive from that chan-
+nel completes. In the next example, a parent goroutine increments a variable
+before a send, while another goroutine reads it after a channel read:
+```go
+i := 0
+ch := make(chan struct{})
+
+go func() {
+    <-ch
+    fmt.Println(i)
+}()
+i++
+ch <- struct{}{}
+
+// execution order is as follows:
+// variable increment, channel send, channel receive, variable read from println
+```
+so by transitivity, we can ensure that accesses to i are synchronized and hence free from data races.
+- Closing a channel happens before a receive of this closure.
 - 
