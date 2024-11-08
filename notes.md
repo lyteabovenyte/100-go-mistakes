@@ -438,5 +438,45 @@ of passing an empty context with context.Background. `context.TODO()` returns an
 empty context, but semantically, it conveys that the context to be used is either
 unclear or not yet available (not yet propagated by a parent, for example)
 - Concurrency is about structure, whereas parallelism is about execution.
-
-  
+#### chapter 9. concurrency practices.
+- A `context.Context` is an interface containing four methods:
+```go
+type Context interface {
+    Deadline() (deadline time.Time, ok bool)
+    Done() <-chan struct{} // recieve-only channel to signal the cancelation
+    Err() error 
+    Value(key any) any
+}
+```
+- The context’s deadline is managed by the `Deadline` method and the cancellation signal is managed via the `Done` and `Err` methods. When a deadline has passed or the context has been canceled, `Done` should return a closed channel, whereas `Err` should return an error. Finally, the values are carried via the Value method.
+- Channels are a mechanism for communicating across goroutines via signaling.
+- An empty struct is a de facto standard to convey an absence of meaning.
+```go
+var m struct{}
+fmt.Println(unsafe.Sizeof(m)) // 0
+```
+so, For example, if we need a hash set structure (a collection of unique elements), we should use an
+empty struct as a value: `map[K]struct{}`. ( a **set** is map that the key type is any and the value could be anything and we don't care )
+- A channel can be with or without data. If we want to design an idiomatic API in
+regard to Go standards, let’s remember that a channel without data should be
+expressed with a `chan struct{}` type. This way, it clarifies for receivers that they
+shouldn’t expect any meaning from a message’s content, only the fact that they have
+received a message. In Go, such channels are called **notification channels**.
+- The select statement lets a goroutine wait on multiple operations at the same time.
+- Receiving from a closed channel is a non-blocking operation.
+- receiving from a nil channel will block forever. in general, waiting or sending to a nil channel is a blocking action, and this behavior isn’t useless. we can use nil channels to implement an elegant state machine that will remove one case from a select statement.
+- In concurrency, synchronization
+means we can guarantee that multiple goroutines will be in a known state at some
+point. For example, a mutex provides synchronization because it ensures that only
+one goroutine can be in a critical section at the same time. Regarding channels:
+  - An unbuffered channel enables synchronization. We have the guarantee that
+    two goroutines will be in a known state: one receiving and another sending a
+    message.
+  -  A buffered channel doesn’t provide any strong synchronization. Indeed, a pro-
+    ducer goroutine can send a message and then continue its execution if the
+    channel isn’t full. The only guarantee is that a goroutine won’t receive a message before it is sent. But this is only a guarantee because of causality (you don’t
+    drink your coffee before you prepare it).
+- There are other cases where unbuffered channels are preferable: for example, in
+the case of a notification channel where the notification is handled via a channel clo-
+sure (`close(ch)`). Here, using a buffered channel wouldn’t bring any benefits.
+- 
