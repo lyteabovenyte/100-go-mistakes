@@ -420,4 +420,23 @@ ch <- struct{}{}
 ```
 so by transitivity, we can ensure that accesses to i are synchronized and hence free from data races.
 - Closing a channel happens before a receive of this closure.
-- 
+- We can use the `runtime.GOMAXPROCS(int)` function to update the value of GOMAXPROCS. Calling it with 0 as an argument doesn’t change the value; it just returns the current value:
+```go
+n := runtime.GOMAXPROCS(0) // return the current value of the number of logical CPU
+```
+- When implementing the worker-pooling pattern, we have seen that the optimal number of goroutines in the pool depends on the workload type. If the workload executed by the workers is I/O-bound, the value mainly depends on the external system. Conversely, if the workload is CPU-bound, the optimal number of goroutines is close to the number of available threads(`runtime.NumCPU()` or `runtime.GOMAXPROC()`). Knowing the workload type (I/O or CPU) is crucial when designing concurrent applications.
+- A **Context** carries a deadline, a cancellation signal, and other values across API
+boundaries.
+- The context.Context type exports a `Done` method that returns a receive-only notification channel: `<-chan struct{}`. This channel is closed when the work associated with the context should be canceled.
+- the internal channel should be closed when a context is canceled or has met a deadline, instead of when it receives a specific value, because the closure of a channel is the only channel action that all the consumer goroutines will
+receive. This way, all the consumers will be notified once a context is canceled or a deadline is reached.
+- `context.Context` exports an `Err` method that returns nil if the
+Done channel isn’t yet closed. Otherwise, it returns a non-nil error explaining why the
+Done channel was closed
+- When in doubt about which context to use, we should use `context.TODO()` instead
+of passing an empty context with context.Background. `context.TODO()` returns an
+empty context, but semantically, it conveys that the context to be used is either
+unclear or not yet available (not yet propagated by a parent, for example)
+- Concurrency is about structure, whereas parallelism is about execution.
+
+  
